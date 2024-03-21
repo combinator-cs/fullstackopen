@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 mongoose.set("strictQuery", false);
 
-const dbUrl = process.env.MONGO_DB;
+const dbUrl = process.env.MONGODB_URI;
 
 mongoose
   .connect(dbUrl)

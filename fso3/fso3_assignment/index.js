@@ -1,4 +1,4 @@
-require("dotenv").config();
+require("dotenv").config({path: "fso3/.env"});
 
 const express = require("express");
 const morgan = require("morgan");
