@@ -45,20 +45,18 @@ app.get("/api/persons/:id", (request, response, next) => {
   );
 });
 
-app.post("/api/persons", (request, response) => {
+app.post("/api/persons", (request, response, next) => {
   const person = request.body;
-  if (person && person.name && person.number) {
-    const personData = new Person({
-      name: person.name,
-      number: person.number,
-    });
-    personData.save().then((savedPerson) => {
+  const personData = new Person({
+    name: person.name,
+    number: person.number,
+  });
+  personData
+    .save()
+    .then((savedPerson) => {
       response.json(savedPerson);
-    });
-  } else {
-    response.json({ error: "content missing" });
-    response.status(400).end();
-  }
+    })
+    .catch((error) => next(error));
 });
 
 app.delete("/api/persons/:id", (request, response, next) => {
@@ -74,12 +72,13 @@ app.delete("/api/persons/:id", (request, response, next) => {
 });
 
 app.put("/api/persons/:id", (request, response, next) => {
-  const person = request.body;
-  const personData = new Person({
-    name: person.name,
-    number: person.number,
-  });
-  Person.findByIdAndUpdate(request.params.id, personData, { new: true })
+  const { name, number } = request.body;
+
+  Person.findByIdAndUpdate(
+    request.params.id,
+    { name, number },
+    { new: true, runValidators: true, context: "query" }
+  )
     .then((updatedRes) => {
       response.json(updatedRes);
     })
@@ -108,6 +107,8 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === "CastError") {
     return response.status(400).send({ error: "malformatted id" });
+  } else if (error.name === "ValidationError") {
+    return response.status(400).json({ error: error.message });
   }
 
   next(error);
